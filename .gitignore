@@ -1,0 +1,6 @@
+node_modules/
+.env
+sunarp_token.json
+public/
+*.log
+.DS_Store

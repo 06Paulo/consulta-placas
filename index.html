@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Consulta de Placa — Perú</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --bg2: #1a1f2e;
+    --bg3: #232a3b;
+    --bg4: #2d3650;
+    --red: #e03131;
+    --red2: #c92a2a;
+    --white: #e8eaed;
+    --gray: #9aa0a6;
+    --border: #3c4251;
+    --green: #2f9e44;
+    --yellow: #f59f00;
+    --blue: #1971c2;
+    --accent: #c0392b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--white);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #c0392b 0%, #96281b 100%);
+    padding: 0 24px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+  .flag { font-size: 26px; }
+  .header-title { font-size: 18px; font-weight: 700; letter-spacing: 0.3px; }
+  .header-sub { font-size: 12px; opacity: 0.8; margin-top: 1px; }
+  .header-badge {
+    margin-left: auto;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* MAIN */
+  .container { max-width: 960px; margin: 0 auto; padding: 32px 20px 60px; }
+
+  /* SEARCH BOX */
+  .search-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px 32px;
+    text-align: center;
+    margin-bottom: 32px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+  }
+  .search-title { font-size: 24px; font-weight: 700; margin-bottom: 6px; }
+  .search-sub { color: var(--gray); font-size: 14px; margin-bottom: 28px; }
+
+  .plate-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 0;
+    background: #fff;
+    border-radius: 12px;
+    padding: 6px 6px 6px 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    margin-bottom: 20px;
+  }
+  .plate-flag {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    margin-right: 10px;
+    min-width: 28px;
+  }
+  .plate-flag-bar { width: 22px; height: 7px; border-radius: 2px; }
+  .plate-country {
+    font-size: 8px;
+    font-weight: 800;
+    color: #c0392b;
+    letter-spacing: 1px;
+  }
+  #placa-input {
+    background: transparent;
+    border: none;
+    outline: none;
+    font-size: 32px;
+    font-weight: 900;
+    letter-spacing: 6px;
+    color: #1a1a1a;
+    width: 220px;
+    text-align: center;
+    text-transform: uppercase;
+    font-family: 'Courier New', monospace;
+    caret-color: var(--accent);
+  }
+  #placa-input::placeholder { color: #bbb; letter-spacing: 4px; font-size: 24px; }
+
+  .btn-consultar {
+    background: linear-gradient(135deg, #c0392b, #96281b);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 36px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 16px rgba(192,57,43,0.4);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-consultar:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(192,57,43,0.5); }
+  .btn-consultar:active { transform: translateY(0); }
+  .btn-consultar:disabled { background: var(--bg4); color: var(--gray); box-shadow: none; cursor: not-allowed; transform: none; }
+
+  .format-hint {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--gray);
+  }
+  .format-hint span {
+    background: var(--bg4);
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-family: monospace;
+    margin: 0 3px;
+  }
+
+  /* SOURCES */
+  .sources-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .source-chip {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 5px 12px;
+    font-size: 12px;
+    color: var(--gray);
+    text-decoration: none;
+    transition: all 0.15s;
+    cursor: pointer;
+  }
+  .source-chip:hover { background: var(--bg4); color: var(--white); border-color: #555; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; }
+  .dot-red { background: #e03131; }
+  .dot-blue { background: #1971c2; }
+
+  /* LOADING */
+  .loading-wrap {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  .loading-wrap.visible { display: block; }
+  .spinner {
+    width: 48px; height: 48px;
+    border: 4px solid var(--bg4);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { color: var(--gray); font-size: 14px; }
+  .loading-steps { margin-top: 12px; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+  .step { font-size: 12px; color: var(--gray); display: flex; align-items: center; gap: 8px; }
+  .step.active { color: var(--white); }
+  .step.done { color: var(--green); }
+  .step-icon { width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+  .step-icon.pending { background: var(--bg4); }
+  .step-icon.spinning { background: var(--accent); animation: spin 0.8s linear infinite; }
+  .step-icon.ok { background: var(--green); }
+  .step-icon.err { background: var(--red); }
+
+  /* MINI-VIEWER TURNSTILE — compacto, solo el checkbox */
+  #sunarp-viewer {
+    display: none;
+    margin-top: 16px;
+    background: rgba(251,188,4,0.07);
+    border: 2px solid rgba(251,188,4,0.55);
+    border-radius: 12px;
+    padding: 12px 14px;
+    max-width: 420px;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+    animation: viewer-pulse-border 2s ease-in-out infinite;
+  }
+  @keyframes viewer-pulse-border {
+    0%,100% { box-shadow: 0 0 8px rgba(251,188,4,0.1); border-color: rgba(251,188,4,0.45); }
+    50%      { box-shadow: 0 0 18px rgba(251,188,4,0.3); border-color: rgba(251,188,4,0.85); }
+  }
+  #sunarp-viewer.visible { display: block; }
+  .viewer-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fcc419;
+    margin-bottom: 8px;
+  }
+  .viewer-hint {
+    font-size: 12px;
+    color: var(--gray);
+    margin-bottom: 10px;
+    line-height: 1.6;
+  }
+  #viewer-img-wrap {
+    position: relative;
+    cursor: crosshair;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #111;
+  }
+  #viewer-img {
+    width: 100%;
+    height: auto;
+    display: block;
+    user-select: none;
+  }
+  #viewer-click-flash {
+    position: absolute;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: rgba(252,196,25,0.7);
+    pointer-events: none;
+    display: none;
+    transform: translate(-50%, -50%);
+  }
+  .viewer-status {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--gray);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .viewer-status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #fcc419;
+    animation: pulse 1.2s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .viewer-token-ok { color: var(--green); font-weight: 600; }
+
+  /* RESULTS */
+  .results-wrap { display: none; }
+  .results-wrap.visible { display: block; }
+
+  .results-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .placa-display {
+    background: #fff;
+    color: #1a1a1a;
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 5px;
+    font-family: 'Courier New', monospace;
+    padding: 8px 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+  .results-timestamp { color: var(--gray); font-size: 12px; margin-left: auto; }
+
+  .results-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 680px) { .results-grid { grid-template-columns: 1fr; } }
+
+  .result-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .result-card-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  .result-card-icon {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+  .icon-sunarp { background: rgba(25, 113, 194, 0.15); }
+  .icon-sat { background: rgba(192, 57, 43, 0.15); }
+  .result-card-title { font-size: 15px; font-weight: 700; }
+  .result-card-sub { font-size: 11px; color: var(--gray); }
+  .status-badge {
+    margin-left: auto;
+    padding: 3px 10px;
+    border-radius: 10px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .badge-ok { background: rgba(47, 158, 68, 0.15); color: #51cf66; }
+  .badge-err { background: rgba(224, 49, 49, 0.15); color: #ff6b6b; }
+  .badge-warn { background: rgba(245, 159, 0, 0.15); color: #fcc419; }
+
+  .result-card-body { padding: 16px 18px; }
+
+  /* FIELD LIST */
+  .field-list { display: flex; flex-direction: column; gap: 0; }
+  .field-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid rgba(60,66,81,0.5);
+    font-size: 13px;
+  }
+  .field-item:last-child { border-bottom: none; }
+  .field-key { color: var(--gray); flex-shrink: 0; max-width: 160px; }
+  .field-val { color: var(--white); text-align: right; font-weight: 500; word-break: break-word; }
+  .field-val.highlight { color: #ff6b6b; font-weight: 700; }
+  .field-val.green { color: #51cf66; }
+
+  /* MULTAS TABLE */
+  .multas-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+  .multas-table th {
+    background: var(--bg4);
+    color: var(--gray);
+    padding: 7px 10px;
+    text-align: left;
+    font-weight: 700;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  .multas-table td {
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(60,66,81,0.4);
+    vertical-align: top;
+  }
+  .multas-table tr:last-child td { border-bottom: none; }
+  .multas-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .monto { color: #ff6b6b; font-weight: 700; }
+  .pagado { color: #51cf66; }
+  .pendiente { color: #fcc419; }
+
+  /* ERROR / EMPTY */
+  .msg-box {
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 13px;
+    margin: 4px 0;
+  }
+  .msg-error { background: rgba(224,49,49,0.1); border: 1px solid rgba(224,49,49,0.25); color: #ff6b6b; }
+  .msg-warn { background: rgba(245,159,0,0.1); border: 1px solid rgba(245,159,0,0.25); color: #fcc419; }
+  .msg-info { background: rgba(25,113,194,0.1); border: 1px solid rgba(25,113,194,0.25); color: #74c0fc; }
+  .msg-empty { text-align: center; padding: 28px 16px; color: var(--gray); font-size: 14px; }
+
+  /* OPEN BUTTON */
+  .btn-open {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    background: var(--bg4);
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .btn-open:hover { background: #3c4660; border-color: #555; }
+
+  /* NUEVA CONSULTA */
+  .btn-nueva {
+    display: block;
+    margin: 28px auto 0;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-nueva:hover { background: var(--bg4); }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 20px;
+    color: var(--gray);
+    font-size: 11px;
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .fade-in { animation: fadeIn 0.3s ease; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="flag">🇵🇪</span>
+  <div>
+    <div class="header-title">Consulta de Placa — Perú</div>
+    <div class="header-sub">SUNARP · SAT Lima</div>
+  </div>
+  <div class="header-badge">Consulta Gratuita</div>
+</header>
+
+<div class="container">
+
+  <!-- SEARCH -->
+  <div class="search-card" id="search-card">
+    <div class="search-title">Ingresa la placa del vehículo</div>
+    <div class="search-sub">Consulta datos del propietario, características y multas pendientes</div>
+
+    <div>
+      <div class="plate-wrap">
+        <div class="plate-flag">
+          <div class="plate-flag-bar" style="background:#D91023;"></div>
+          <div class="plate-flag-bar" style="background:#fff;"></div>
+          <div class="plate-flag-bar" style="background:#D91023;"></div>
+          <div class="plate-country">PERÚ</div>
+        </div>
+        <input
+          id="placa-input"
+          type="text"
+          maxlength="8"
+          placeholder="ABC-123"
+          autocomplete="off"
+          spellcheck="false"
+        />
+      </div>
+    </div>
+
+    <div>
+      <button class="btn-consultar" id="btn-consultar" onclick="iniciarConsulta()">
+        🔍 Consultar
+      </button>
+    </div>
+
+    <div class="format-hint">
+      Formatos válidos: <span>ABC-123</span> <span>A1B-234</span> <span>ABC-1234</span>
+    </div>
+
+    <div class="sources-row">
+      <a class="source-chip" href="https://consultavehicular.sunarp.gob.pe/consulta-vehicular/inicio" target="_blank">
+        <div class="dot dot-blue"></div> SUNARP — Datos del vehículo
+      </a>
+      <a class="source-chip" href="https://www.sat.gob.pe" target="_blank">
+        <div class="dot dot-red"></div> SAT Lima — Papeletas y multas
+      </a>
+    </div>
+
+    <!-- Estado del token SUNARP -->
+    <div id="sunarp-token-row" style="margin-top:12px;font-size:12px;color:var(--gray);display:flex;align-items:center;gap:8px;justify-content:center;">
+      <span id="sunarp-token-icon">⏳</span>
+      <span id="sunarp-token-text">Verificando sesión SUNARP...</span>
+      <button id="btn-borrar-token" onclick="borrarTokenSunarp()" style="display:none;background:var(--bg4);border:1px solid var(--border);border-radius:6px;color:var(--gray);font-size:11px;padding:2px 8px;cursor:pointer;">🗑 Olvidar sesión</button>
+    </div>
+
+    <!-- Mini-viewer Turnstile: solo el checkbox de verificación (aparece durante consulta) -->
+    <div id="sunarp-viewer">
+      <div class="viewer-title">🔐 Haz clic en el cuadro de verificación para continuar</div>
+      <div id="viewer-img-wrap">
+        <img id="viewer-img" src="" alt="Verificación SUNARP" draggable="false" />
+        <div id="viewer-click-flash"></div>
+      </div>
+      <div class="viewer-status">
+        <div class="viewer-status-dot" id="viewer-dot"></div>
+        <span id="viewer-status-text">Cargando verificación...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading-wrap" id="loading-wrap">
+    <div class="spinner"></div>
+    <div class="loading-text">Consultando fuentes oficiales...</div>
+    <div class="loading-steps">
+      <div class="step" id="step-sunarp">
+        <div class="step-icon pending" id="icon-sunarp">⏳</div>
+        Consultando SUNARP...
+      </div>
+      <div class="step" id="step-sat">
+        <div class="step-icon pending" id="icon-sat">⏳</div>
+        Consultando SAT Lima...
+      </div>
+    </div>
+
+    <div style="margin-top:16px; color:var(--gray); font-size:12px;" id="loading-hint">
+      Consultando SAT Lima y SUNARP...
+    </div>
+  </div>
+
+
+  <!-- RESULTS -->
+  <div class="results-wrap" id="results-wrap">
+
+    <div class="results-header">
+      <div class="placa-display" id="placa-display">—</div>
+      <div style="color:var(--gray);font-size:13px;">Resultados de consulta</div>
+      <div class="results-timestamp" id="results-timestamp"></div>
+    </div>
+
+    <div class="results-grid">
+
+      <!-- SUNARP -->
+      <div class="result-card fade-in">
+        <div class="result-card-header">
+          <div class="result-card-icon icon-sunarp">🚗</div>
+          <div>
+            <div class="result-card-title">SUNARP</div>
+            <div class="result-card-sub">Datos del vehículo y propietario</div>
+          </div>
+          <div class="status-badge" id="badge-sunarp">—</div>
+        </div>
+        <div class="result-card-body" id="body-sunarp">
+          <div class="msg-empty">Sin datos</div>
+        </div>
+      </div>
+
+      <!-- SAT -->
+      <div class="result-card fade-in">
+        <div class="result-card-header">
+          <div class="result-card-icon icon-sat">📋</div>
+          <div>
+            <div class="result-card-title">SAT Lima</div>
+            <div class="result-card-sub">Papeletas y multas de tránsito</div>
+          </div>
+          <div class="status-badge" id="badge-sat">—</div>
+        </div>
+        <div class="result-card-body" id="body-sat">
+          <div class="msg-empty">Sin datos</div>
+        </div>
+      </div>
+
+    </div>
+
+    <button class="btn-nueva" onclick="nuevaConsulta()">← Nueva consulta</button>
+  </div>
+
+</div>
+
+<footer>
+  Datos obtenidos directamente de SUNARP y SAT Lima. Solo para consulta informativa.
+</footer>
+
+<script>
+const API_BASE = 'http://localhost:3000';
+let consultaActiva = false;
+let sunarpPollTimer = null;    // timer para polling del mini-viewer
+let viewerConnected = false;   // si ya mostró imagen alguna vez
+
+// ─── Formatear placa ────────────────────────────────────────────────
+document.getElementById('placa-input').addEventListener('input', function () {
+  let v = this.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  // Insertar guión si tiene 3+ chars y no hay guión
+  if (v.length > 3) v = v.substring(0, 3) + '-' + v.substring(3);
+  this.value = v.substring(0, 8);
+});
+
+document.getElementById('placa-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') iniciarConsulta();
+});
+
+// ─── Estado del token SUNARP ────────────────────────────────────────
+async function verificarTokenSunarp() {
+  try {
+    const r = await fetch(`${API_BASE}/api/sunarp/token-status`, { signal: AbortSignal.timeout(3000) });
+    const { tieneToken, edadMin } = await r.json();
+    const icon = document.getElementById('sunarp-token-icon');
+    const text = document.getElementById('sunarp-token-text');
+    const btnBorrar = document.getElementById('btn-borrar-token');
+    if (tieneToken) {
+      icon.textContent = '✅';
+      text.textContent = `Sesión SUNARP activa — consulta directa (sin verificación Cloudflare)`;
+      text.style.color = 'var(--green)';
+      btnBorrar.style.display = 'inline';
+    } else {
+      icon.textContent = '🔐';
+      text.textContent = 'Primera consulta requerirá verificación de seguridad SUNARP';
+      text.style.color = 'var(--gray)';
+      btnBorrar.style.display = 'none';
+    }
+  } catch {
+    document.getElementById('sunarp-token-text').textContent = 'Servidor no activo';
+  }
+}
+
+async function borrarTokenSunarp() {
+  await fetch(`${API_BASE}/api/sunarp/borrar-token`, { method: 'POST' }).catch(() => {});
+  verificarTokenSunarp();
+}
+
+// ─── Verificar servidor disponible ─────────────────────────────────
+async function serverDisponible() {
+  try {
+    const r = await fetch(`${API_BASE}/api/health`, { signal: AbortSignal.timeout(3000) });
+    return r.ok;
+  } catch { return false; }
+}
+
+// Verificar token al cargar la página
+verificarTokenSunarp();
+
+// ─── Iniciar consulta ───────────────────────────────────────────────
+async function iniciarConsulta() {
+  if (consultaActiva) return;
+
+  const placa = document.getElementById('placa-input').value.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+  if (placa.length < 4) {
+    alert('Ingresa una placa válida (mínimo 4 caracteres)');
+    return;
+  }
+
+  consultaActiva = true;
+  document.getElementById('btn-consultar').disabled = true;
+  mostrarLoading();
+
+  // Verificar si el servidor está corriendo
+  const hayServidor = await serverDisponible();
+
+  if (!hayServidor) {
+    // Modo sin servidor: mostrar resultados con links directos
+    setTimeout(() => mostrarSinServidor(placa), 500);
+    return;
+  }
+
+  // Actualizar pasos
+  setStep('sunarp', 'spinning');
+  setStep('sat', 'spinning');
+
+  try {
+    const resp = await fetch(`${API_BASE}/api/consultar/${placa}`, {
+      signal: AbortSignal.timeout(180000)
+    });
+
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    const data = await resp.json();
+
+    setStep('sunarp', data.sunarp?.ok ? 'ok' : 'err');
+    setStep('sat', data.sat?.ok ? 'ok' : 'err');
+
+    await new Promise(r => setTimeout(r, 400));
+    mostrarResultados(data);
+
+  } catch (err) {
+    setStep('sunarp', 'err');
+    setStep('sat', 'err');
+    await new Promise(r => setTimeout(r, 500));
+    mostrarSinServidor(placa);
+  }
+}
+
+// ─── Sin servidor: modo manual ──────────────────────────────────────
+function mostrarSinServidor(placa) {
+  const data = {
+    placa,
+    sunarp: { ok: false, error: 'Servidor no disponible', fuente: 'SUNARP' },
+    sat: { ok: false, error: 'Servidor no disponible', fuente: 'SAT' },
+    timestamp: new Date().toISOString(),
+    sinServidor: true,
+  };
+  mostrarResultados(data);
+}
+
+// ─── Mostrar resultados ─────────────────────────────────────────────
+function mostrarResultados(data) {
+  detenerPollSunarp();
+  document.getElementById('loading-wrap').classList.remove('visible');
+  document.getElementById('sunarp-viewer').classList.remove('visible');
+  document.getElementById('results-wrap').classList.add('visible');
+  document.getElementById('search-card').style.display = 'none';
+
+  document.getElementById('placa-display').textContent = data.placa;
+  document.getElementById('results-timestamp').textContent =
+    'Consultado: ' + new Date(data.timestamp).toLocaleString('es-PE');
+
+  renderSUNARP(data.sunarp, data.placa, data.sinServidor);
+  renderSAT(data.sat, data.placa, data.sinServidor);
+
+  consultaActiva = false;
+  document.getElementById('btn-consultar').disabled = false;
+}
+
+// ─── Render SUNARP ──────────────────────────────────────────────────
+function renderSUNARP(result, placa, sinServidor) {
+  const badge = document.getElementById('badge-sunarp');
+  const body  = document.getElementById('body-sunarp');
+
+  if (!result.ok || sinServidor) {
+    badge.className = 'status-badge badge-warn';
+    badge.textContent = sinServidor ? 'Manual' : 'Cloudflare';
+
+    // Sesión de Cloudflare expirada — mostrar flujo de renovación
+    if (result.cfSesionExpirada) {
+      badge.className = 'status-badge badge-warn';
+      badge.textContent = 'Sin sesión';
+      body.innerHTML = `
+        <div class="msg-warn" style="margin-bottom:12px">
+          <strong style="color:#fcc419">Sesión de Cloudflare expirada</strong><br>
+          <span style="font-size:12px;line-height:1.7">
+            Haz clic en el botón para abrir Chrome en SUNARP y renovar la sesión.<br>
+            Cuando cargue la página (5–10 seg), cierra Chrome o vuelve aquí y reintenta.
+          </span>
+        </div>
+        <button class="btn-open" id="btn-renovar-sunarp" onclick="renovarSesionSunarp('${placa}')">
+          🔄 Renovar sesión SUNARP (abre Chrome)
+        </button>
+        <div id="renovar-status" style="margin-top:10px;font-size:12px;color:var(--gray);display:none">
+          ⏳ Espera que Chrome cargue SUNARP (≈10 seg)... luego:
+          <button class="btn-open" style="margin-top:8px;display:block"
+            onclick="document.getElementById('placa-input').value='${placa}';nuevaConsulta();setTimeout(iniciarConsulta,300)">
+            ▶ Reintentar consulta
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    const esCloudflare = !sinServidor && /cloudflare|formulario|timeout|connection/i.test(result.error || '');
+    const msg = sinServidor
+      ? 'Servidor no activo. Abre SUNARP manualmente:'
+      : esCloudflare
+        ? 'SUNARP bloqueado por Cloudflare. Usa el botón "Renovar sesión" y reintenta:'
+        : `Error SUNARP: ${result.error}. Consulta manualmente:`;
+
+    body.innerHTML = `
+      <div class="msg-warn" style="margin-bottom:10px">${msg}</div>
+      <button class="btn-open" onclick="copiarYAbrir('${placa}')">
+        🔗 Abrir SUNARP con placa copiada
+      </button>
+      <div style="margin-top:10px;font-size:12px;color:var(--gray);line-height:1.7">
+        1. Haz clic en el botón → se abre SUNARP y se copia <strong style="color:#fff">${placa}</strong> al portapapeles<br>
+        2. Pega la placa en el campo de búsqueda (Ctrl+V)<br>
+        3. Haz clic en <strong style="color:#fff">Realizar Búsqueda</strong>
+      </div>
+    `;
+    return;
+  }
+
+  // Si el resultado es una imagen (tarjeta vehicular de SUNARP)
+  if (result.esImagen && result.imagenUrl) {
+    badge.className = 'status-badge badge-ok';
+    badge.textContent = 'OK';
+    body.innerHTML = `
+      <div style="font-size:12px;color:var(--gray);margin-bottom:8px;">
+        Tarjeta vehicular SUNARP — <strong style="color:var(--white)">${placa}</strong>
+      </div>
+      <img
+        src="${result.imagenUrl}"
+        alt="Tarjeta vehicular SUNARP"
+        style="width:100%;border-radius:8px;border:1px solid var(--border);cursor:pointer;"
+        onclick="window.open(this.src,'_blank')"
+        title="Clic para ver en tamaño completo"
+      />
+      <div style="margin-top:8px;font-size:11px;color:var(--gray);">
+        🔍 Clic en la imagen para verla en tamaño completo
+      </div>
+      <button class="btn-open" style="margin-top:10px"
+        onclick="window.open('https://consultavehicular.sunarp.gob.pe/consulta-vehicular/inicio','_blank')">
+        🔗 Ver en SUNARP
+      </button>
+    `;
+    return;
+  }
+
+  badge.className = 'status-badge badge-ok';
+  badge.textContent = 'OK';
+
+  const campos = result.datos?.campos || {};
+  const bloques = result.datos?.bloques || [];
+
+  if (Object.keys(campos).length === 0 && bloques.length === 0) {
+    body.innerHTML = `
+      <div class="msg-warn">Se conectó a SUNARP pero no se encontraron datos para esta placa.</div>
+      ${textoPlanoAccordion(result.datos?.textoPlano)}
+      <button class="btn-open" onclick="window.open('https://consultavehicular.sunarp.gob.pe/consulta-vehicular/inicio','_blank')">
+        🔗 Ver en SUNARP
+      </button>
+    `;
+    return;
+  }
+
+  // Mostrar campos en el orden exacto que vienen del servidor (ya ordenados)
+  // Destacar campos clave
+  const DESTACADOS = new Set(['N° Placa','Marca','Modelo','Propietario(s)','Estado']);
+
+  let html = '<div class="field-list">';
+  for (const [key, val] of Object.entries(campos)) {
+    if (val && key.length < 80) {
+      const cls = DESTACADOS.has(key) ? 'highlight' : '';
+      html += fieldRow(key, val, cls);
+    }
+  }
+  html += '</div>';
+
+  // Tablas
+  bloques.forEach(b => {
+    if (b.tipo === 'tabla' && b.filas.length) {
+      html += '<div style="margin-top:14px;overflow-x:auto"><table class="multas-table"><tbody>';
+      b.filas.forEach(fila => {
+        html += '<tr>' + fila.map(c => `<td>${esc(c)}</td>`).join('') + '</tr>';
+      });
+      html += '</tbody></table></div>';
+    }
+  });
+
+  html += `<button class="btn-open" style="margin-top:14px" onclick="window.open('https://consultavehicular.sunarp.gob.pe/consulta-vehicular/inicio','_blank')">🔗 Ver en SUNARP</button>`;
+
+  body.innerHTML = html;
+}
+
+// ─── Render SAT ─────────────────────────────────────────────────────
+function renderSAT(result, placa, sinServidor) {
+  const badge = document.getElementById('badge-sat');
+  const body  = document.getElementById('body-sat');
+
+  if (!result.ok || sinServidor) {
+    badge.className = 'status-badge badge-warn';
+    badge.textContent = sinServidor ? 'Manual' : 'Error';
+
+    body.innerHTML = `
+      <div class="msg-warn">${sinServidor ? 'El servidor no está activo.' : `Error: ${result.error}`}<br>Consulta manualmente en SAT Lima:</div>
+      <button class="btn-open" onclick="abrirSAT()">
+        🔗 Abrir SAT Lima — Consulta de Papeletas
+      </button>
+      <div style="margin-top:12px;font-size:12px;color:var(--gray);">
+        Ingresa la placa <strong style="color:var(--white)">${placa}</strong> en el campo de búsqueda.
+      </div>
+      ${guiaSAT()}
+    `;
+    return;
+  }
+
+  const papeletas = result.datos?.papeletas || [];
+  const resumen   = result.datos?.resumen || {};
+
+  if (papeletas.length === 0) {
+    badge.className = 'status-badge badge-ok';
+    badge.textContent = 'Sin multas';
+    body.innerHTML = `
+      <div class="msg-box" style="background:rgba(47,158,68,0.1);border:1px solid rgba(47,158,68,0.25);color:#51cf66;font-size:14px;text-align:center;padding:20px;">
+        ✅ Sin papeletas registradas
+      </div>
+      ${textoPlanoAccordion(result.datos?.textoPlano)}
+      <button class="btn-open" style="margin-top:12px" onclick="abrirSAT()">🔗 Verificar en SAT</button>
+    `;
+    return;
+  }
+
+  badge.className = 'status-badge badge-err';
+  badge.textContent = `${papeletas.length} multa${papeletas.length !== 1 ? 's' : ''}`;
+
+  const cols = Object.keys(papeletas[0]).filter(c => c && c !== 'col0');
+  let html = '<div style="overflow-x:auto"><table class="multas-table"><thead><tr>';
+  cols.forEach(c => { html += `<th>${esc(c)}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  papeletas.forEach(p => {
+    html += '<tr>';
+    cols.forEach(c => {
+      const v = p[c] || '';
+      const cls = v.match(/S\/|soles/i) ? ' class="monto"'
+        : v.toLowerCase() === 'pagado' ? ' class="pagado"'
+        : v.toLowerCase().includes('pendiente') ? ' class="pendiente"' : '';
+      html += `<td${cls}>${esc(v)}</td>`;
+    });
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+
+  if (Object.keys(resumen).length) {
+    html += '<div class="field-list" style="margin-top:12px">';
+    for (const [k, v] of Object.entries(resumen)) {
+      html += fieldRow(k, v, v.match(/S\//i) ? 'highlight' : '');
+    }
+    html += '</div>';
+  }
+
+  html += `<button class="btn-open" style="margin-top:14px" onclick="abrirSAT()">🔗 Ver en SAT Lima</button>`;
+  body.innerHTML = html;
+}
+
+// ─── Guías paso a paso ──────────────────────────────────────────────
+function guiaSUNARP() {
+  return `
+    <div class="msg-info" style="margin-top:14px;font-size:12px;line-height:1.8">
+      <strong>Pasos en SUNARP:</strong><br>
+      1. Abre SUNARP con el botón de arriba<br>
+      2. Selecciona "Número de Placa"<br>
+      3. Ingresa la placa y haz clic en Buscar
+    </div>
+  `;
+}
+
+function guiaSAT() {
+  return `
+    <div class="msg-info" style="margin-top:14px;font-size:12px;line-height:1.8">
+      <strong>Pasos manuales en SAT Lima:</strong><br>
+      1. Abre SAT con el botón de arriba<br>
+      2. Haz clic en <strong style="color:#fff">"Consulta de papeletas"</strong><br>
+      3. En la nueva ventana, selecciona <strong style="color:#fff">"Búsqueda por Placa"</strong><br>
+      4. Ingresa la placa y haz clic en <strong style="color:#fff">Buscar</strong>
+    </div>
+  `;
+}
+
+async function renovarSesionSunarp(placa) {
+  const btn = document.getElementById('btn-renovar-sunarp');
+  const status = document.getElementById('renovar-status');
+  if (btn) btn.disabled = true;
+  await fetch(`${API_BASE}/api/sunarp/renovar-sesion`, { method: 'POST' }).catch(() => {});
+  if (status) status.style.display = 'block';
+}
+
+function abrirSAT() {
+  window.open('https://www.sat.gob.pe/websitev9/TributosMultas/Papeletas/ConsultasPapeletas', '_blank');
+}
+
+function copiarYAbrir(placa) {
+  navigator.clipboard.writeText(placa).catch(() => {});
+  window.open('https://consultavehicular.sunarp.gob.pe/consulta-vehicular/inicio', '_blank');
+}
+
+// ─── Helpers ────────────────────────────────────────────────────────
+function fieldRow(key, val, cls = '') {
+  return `<div class="field-item">
+    <span class="field-key">${esc(key)}</span>
+    <span class="field-val ${cls}">${esc(val)}</span>
+  </div>`;
+}
+
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function textoPlanoAccordion(texto) {
+  if (!texto) return '';
+  return `
+    <details style="margin-top:12px;font-size:11px;color:var(--gray)">
+      <summary style="cursor:pointer;color:var(--gray)">Ver texto extraído de la página</summary>
+      <pre style="white-space:pre-wrap;margin-top:8px;background:var(--bg3);padding:10px;border-radius:6px;font-size:11px;max-height:200px;overflow-y:auto">${esc(texto)}</pre>
+    </details>
+  `;
+}
+
+function setStep(id, estado) {
+  const icon = document.getElementById(`icon-${id}`);
+  const step = document.getElementById(`step-${id}`);
+  const map = { spinning: '🔄', ok: '✅', err: '❌', pending: '⏳' };
+  icon.textContent = map[estado] || '⏳';
+  step.className = 'step ' + (estado === 'ok' ? 'done' : estado === 'spinning' ? 'active' : '');
+}
+
+function mostrarLoading() {
+  document.getElementById('loading-wrap').classList.add('visible');
+  document.getElementById('sunarp-viewer').classList.remove('visible');
+  document.getElementById('loading-hint').textContent = 'Consultando SAT Lima y SUNARP...';
+  setStep('sunarp', 'pending');
+  setStep('sat', 'pending');
+  viewerConnected = false;
+
+  // Iniciar polling del status de SUNARP (muestra mini-viewer cuando Chrome abre)
+  iniciarPollSunarp();
+}
+
+// ─── Polling del mini-viewer Turnstile ─────────────────────────────
+function iniciarPollSunarp() {
+  detenerPollSunarp();
+  sunarpPollTimer = setInterval(pollSunarpStatus, 2000);
+}
+
+function detenerPollSunarp() {
+  if (sunarpPollTimer) { clearInterval(sunarpPollTimer); sunarpPollTimer = null; }
+}
+
+async function pollSunarpStatus() {
+  if (!consultaActiva) { detenerPollSunarp(); return; }
+  try {
+    const r = await fetch(`${API_BASE}/api/sunarp/status`, { signal: AbortSignal.timeout(3000) });
+    const { active, token } = await r.json();
+
+    if (active) {
+      // Mostrar mini-viewer y actualizar imagen
+      const viewer = document.getElementById('sunarp-viewer');
+      const wasHidden = !viewer.classList.contains('visible');
+      viewer.classList.add('visible');
+      if (wasHidden) {
+        viewer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      document.getElementById('loading-hint').textContent = 'Haz clic en el verificador de seguridad:';
+
+      // Actualizar screenshot
+      const img = document.getElementById('viewer-img');
+      const prev = img.src;
+      img.src = `${API_BASE}/api/sunarp/preview?t=${Date.now()}`;
+      if (!viewerConnected) {
+        // Adjuntar listener de clic una sola vez
+        img.onclick = onViewerClick;
+        img.style.cursor = 'crosshair';
+        viewerConnected = true;
+      }
+
+      if (token) {
+        // Turnstile resuelto — actualizar UI
+        document.getElementById('viewer-dot').style.animation = 'none';
+        document.getElementById('viewer-dot').style.background = 'var(--green)';
+        document.getElementById('viewer-status-text').innerHTML =
+          '<span class="viewer-token-ok">✅ Verificación completada — procesando resultado...</span>';
+        detenerPollSunarp();
+      } else {
+        document.getElementById('viewer-status-text').textContent = 'Haz clic en el cuadro de verificación de la imagen';
+      }
+    }
+    // Si !active, SUNARP aún no inició o ya terminó — no hacer nada
+  } catch (_) {}
+}
+
+function onViewerClick(e) {
+  const img = e.currentTarget;
+  const rect = img.getBoundingClientRect();
+  // Coordenadas fraccionarias (0–1) sobre el área mostrada (puede ser recorte o página completa)
+  const xFrac = (e.clientX - rect.left) / rect.width;
+  const yFrac = (e.clientY - rect.top)  / rect.height;
+
+  // Flash visual en el punto clicado
+  const flash = document.getElementById('viewer-click-flash');
+  flash.style.left = (e.clientX - rect.left) + 'px';
+  flash.style.top  = (e.clientY - rect.top) + 'px';
+  flash.style.display = 'block';
+  setTimeout(() => { flash.style.display = 'none'; }, 600);
+
+  fetch(`${API_BASE}/api/sunarp/click`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ xFrac, yFrac }),
+  }).catch(() => {});
+}
+
+function nuevaConsulta() {
+  detenerPollSunarp();
+  document.getElementById('results-wrap').classList.remove('visible');
+  document.getElementById('loading-wrap').classList.remove('visible');
+  document.getElementById('sunarp-viewer').classList.remove('visible');
+  document.getElementById('search-card').style.display = '';
+  document.getElementById('placa-input').value = '';
+  document.getElementById('placa-input').focus();
+  consultaActiva = false;
+}
+</script>
+</body>
+</html>
