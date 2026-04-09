@@ -46,6 +46,7 @@ COPY . .
 # Crear carpeta pública para screenshots/documentos
 RUN mkdir -p public
 
-EXPOSE 3000
+# Railway asigna el puerto via $PORT — no forzar uno fijo
+EXPOSE 8080
 
 CMD ["node", "server.js"]
