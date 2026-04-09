@@ -9,10 +9,8 @@ const StealthPlugin  = require('puppeteer-extra-plugin-stealth');
 
 puppeteerExtra.use(StealthPlugin());
 
-// Cargar tesseract.js para OCR (instalar con: npm install tesseract.js)
+// tesseract.js se carga bajo demanda (lazy) para no consumir RAM al arrancar
 let Tesseract = null;
-try { Tesseract = require('tesseract.js'); console.log('[OCR] tesseract.js cargado ✅'); }
-catch (_) { console.log('[OCR] ⚠️ tesseract.js no instalado. Ejecuta: npm install tesseract.js'); }
 
 // Intentar cargar cookies de Chrome (para bypassar Cloudflare en SUNARP)
 let chromeCookies = null;
@@ -438,25 +436,24 @@ async function ocrizarDocumentoSUNARP(base64png, placa) {
     console.log('[OCR] tesseract sistema no disponible:', e.message.substring(0, 60));
   }
 
-  // ── Intento 2: tesseract.js (npm) ─────────────────────────────────────────
-  if (Tesseract) {
-    try {
-      console.log('[OCR] Usando tesseract.js (puede tomar 15-40s)...');
-      const { data } = await Tesseract.recognize(imgBuffer, 'spa', {
-        logger: m => {
-          if (m.status === 'recognizing text')
-            process.stdout.write(`\r[OCR] ${Math.round(m.progress * 100)}%   `);
-        },
-      });
-      process.stdout.write('\n');
-      const texto = data.text || '';
-      console.log('[OCR] tesseract.js OK. Texto (primeros 600 chars):\n' + texto.substring(0, 600));
-      const campos = extraerCamposSUNARP(texto, placa);
-      console.log('[OCR] Campos:', Object.keys(campos).join(', ') || 'ninguno');
-      return { campos, imagenUrl, textoOCR: texto };
-    } catch (e) {
-      console.log('[OCR] tesseract.js error:', e.message);
-    }
+  // ── Intento 2: tesseract.js (lazy load — solo si sistema no está disponible) ─
+  try {
+    if (!Tesseract) Tesseract = require('tesseract.js');
+    console.log('[OCR] Usando tesseract.js (puede tomar 15-40s)...');
+    const { data } = await Tesseract.recognize(imgBuffer, 'spa', {
+      logger: m => {
+        if (m.status === 'recognizing text')
+          process.stdout.write(`\r[OCR] ${Math.round(m.progress * 100)}%   `);
+      },
+    });
+    process.stdout.write('\n');
+    const texto = data.text || '';
+    console.log('[OCR] tesseract.js OK. Texto (primeros 600 chars):\n' + texto.substring(0, 600));
+    const campos = extraerCamposSUNARP(texto, placa);
+    console.log('[OCR] Campos:', Object.keys(campos).join(', ') || 'ninguno');
+    return { campos, imagenUrl, textoOCR: texto };
+  } catch (e) {
+    console.log('[OCR] tesseract.js error:', e.message);
   }
 
   // ── Sin OCR: devolver imagen para ver manualmente ─────────────────────────
