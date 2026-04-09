@@ -4,19 +4,23 @@ const cors    = require('cors');
 const path    = require('path');
 const axios   = require('axios');
 const fs      = require('fs');
-const puppeteerExtra = require('puppeteer-extra');
-const StealthPlugin  = require('puppeteer-extra-plugin-stealth');
 
-puppeteerExtra.use(StealthPlugin());
-
-// tesseract.js se carga bajo demanda (lazy) para no consumir RAM al arrancar
+// puppeteer-extra y tesseract.js se cargan lazy (son muy pesados — ~300MB+)
+let puppeteerExtra = null;
 let Tesseract = null;
 
-// Intentar cargar cookies de Chrome (para bypassar Cloudflare en SUNARP)
-let chromeCookies = null;
-try { chromeCookies = require('chrome-cookies-secure'); } catch (_) {
-  console.log('[INFO] chrome-cookies-secure no instalado. Ejecuta: npm install chrome-cookies-secure');
+function getPuppeteer() {
+  if (!puppeteerExtra) {
+    puppeteerExtra = require('puppeteer-extra');
+    const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+    puppeteerExtra.use(StealthPlugin());
+  }
+  return puppeteerExtra;
 }
+
+// chrome-cookies-secure solo existe en Windows — ignorar en producción
+let chromeCookies = null;
+try { if (process.platform === 'win32') chromeCookies = require('chrome-cookies-secure'); } catch (_) {}
 
 async function getCFCookies(url) {
   if (!chromeCookies) return null;
@@ -83,7 +87,7 @@ async function launchBrowser(visible = false) {
     ignoreHTTPSErrors: true,
   };
   if (CHROME_PATH) opts.executablePath = CHROME_PATH;
-  return puppeteerExtra.launch(opts);
+  return getPuppeteer().launch(opts);
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
@@ -308,7 +312,7 @@ async function launchBrowserSUNARP() {
     args,
     defaultViewport: { width: 1280, height: 800 },
   };
-  return puppeteerExtra.launch(opts);
+  return getPuppeteer().launch(opts);
 }
 
 // ── Resolver Cloudflare Turnstile automáticamente con 2captcha ───────────────
